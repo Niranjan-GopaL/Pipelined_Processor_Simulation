@@ -2,11 +2,12 @@ import decodings
 
 
 instruction_memory = []
+data_memory        = [0]*100
 
 register_file = {
     '$0': 0,
 
-    '$t0': '01000',
+    '$t0': 10,
     '$t1': '01001',
     '$t2': 43123,
     '$t3': '01011',
@@ -17,7 +18,7 @@ register_file = {
     '$t8': '11000',
     '$t9': '11001',
 
-    '$s0': '10000',
+    '$s0': 12,
     '$s1': '10001',
     '$s2': '10010',
     '$s3': '10011',
@@ -36,8 +37,7 @@ with open(file_path, "r") as file:
     instruction_memory = file.readlines()
 
 
-'''
-Output we trying for :-
+'''Output we trying for :-
 
 clock cycle 1    : Instruction No 1 :-  (IF)   PC -> 101010101101010101101010101101010101
 clock cycle 2    : Instruction No 1 :-  (ID)   instruction decoded as :-
@@ -65,13 +65,37 @@ clock cycle 5    : Instruction No 1 :-  (RegWrite)
                         
 '''
 
+''' For Branch Insteruction output we'll try to do :-
+
+
+
+'''
+
+
+  
+# To do 
+
+#  [*]-> addi instruction
+#  [*]-> sub instruction
+#  []-> lw  instruction
+#  []-> sw  instruction
+#  []-> beq  instruction ( Do later )               
+#  []-> j  instruction
+#  []-> sw  instruction
+
+
+
+
 begining_space = "                        "
 clk = 1
+
 
 instruction_number = 1
 eof = len(instruction_memory)
 
 while instruction_number - 1 != eof :
+    output = 0
+
     line = instruction_memory[instruction_number - 1] 
     line = line.strip()
     
@@ -101,92 +125,125 @@ while instruction_number - 1 != eof :
 
         print(begining_space + f'{opcode_decoded}    {rt_decoded}, {rs_decoded}, {int(imm)}\n')
 
+    if opcode_decoded in decodings.load_store_encoding :
+        rs = line[6:11]
+        rt = line[11:16]
+        imm = line[16:]
+        rs_decoded = decodings.register_decoding[rs]        
+        rt_decoded = decodings.register_decoding[rt]
+        print(begining_space + f'Instruction[25:21] --- {rs} --- {rs_decoded} ')
+        print(begining_space + f'Instruction[20:16] --- {rt} --- {rt_decoded} ')
+        print(begining_space + f'Instruction[15:0 ] --- {imm} --- {int(imm)}\n')
+
+        print(begining_space + f'{opcode_decoded}    {rt_decoded}, {int(imm)}({rs_decoded}), \n')
+
+
+    elif opcode_decoded in decodings.r_type:
+        rs = line[6:11]
+        rt = line[11:16]
+        rd = line[16:21]
+        shamt = line[21:26]
+        func = line[26:]
+
+        rs_decoded    = decodings.register_decoding[rs]        
+        rt_decoded    = decodings.register_decoding[rt]
+        rd_decoded    = decodings.register_decoding[rd]
+        func_decoded  = decodings.func_encoding[func]
+
+        print(begining_space + f'Instruction[25:21] --- {rs} --- {rs_decoded} ')
+        print(begining_space + f'Instruction[20:16] --- {rt} --- {rt_decoded} ')
+        print(begining_space + f'Instruction[15:11] --- {rd} --- {rd_decoded} ')
+
+        print(begining_space + f'Instruction[10:6 ] --- {shamt} --- 0 ')
+        print(begining_space + f'Instruction[5 :0  ] --- {func} --- {func_decoded} ')
+
+        print(begining_space + f'{func_decoded}    {rd_decoded}, {rs_decoded}, {rt_decoded}\n')
+
+
     clk+=1
 
 
     # ALU phase
-    print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:-  (Ex)  ALU performing addition\n')
+    if opcode_decoded in decodings.i_type or opcode_decoded in decodings.load_store_encoding :
+        print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:-  (Ex)  ALU performing addition\n')
 
-    print(begining_space + f'register {rs_decoded} contains  :- {register_file[rs_decoded]}')
-    print(begining_space + f'immediate value        :- {int(imm)}')
-    print(begining_space + 'ALU executing...')
+        print(begining_space + f'register {rs_decoded} contains  :- {register_file[rs_decoded]}')
+        print(begining_space + f'immediate value        :- {int(imm)}')
+        print(begining_space + 'ALU executing...')
 
-    # ALU addition
-    output = int(imm) + register_file[rs_decoded]
+        # ALU addition
+        output = int(imm) + register_file[rs_decoded]
 
-    print(begining_space + f'Output computed as     :-  + {register_file[rs_decoded]} + {int(imm)} = {output}\n\n')
+        print(begining_space + f'Output computed as     :-  + {register_file[rs_decoded]} + {int(imm)} = {output}\n\n')
+
+    if opcode_decoded in decodings.r_type :
+        opertaion = { 'sub': "subrtation", 'add': "addition", 'mul': "multiplication"}
+
+        print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:-  (Ex)  ALU performing {opertaion[func_decoded]}\n')
+        print(begining_space + f'register {rs_decoded} contains  :- {register_file[rs_decoded]}')
+        print(begining_space + f'register {rt_decoded} contains  :- {register_file[rt_decoded]}')
+
+        print(begining_space + 'ALU executing...')
+
+
+        rs_value = register_file[rs_decoded]
+        rt_value = register_file[rt_decoded]
+
+        # ALU operation
+        if func_decoded == 'sub':
+            output = rs_value - rt_value
+            operation_character = '-'
+
+        elif func_decoded == 'add':
+            output = rs_value + rt_value
+            operation_character = '+'
+
+        elif func_decoded == 'mul':
+            output = rs_value * rt_value
+            operation_character = '*'
+
+        print(begining_space + f'Output computed as     :-  + {register_file[rs_decoded]} {operation_character} {register_file[rt_decoded]} = {output}\n\n')
+
+
     clk+=1
+
+
 
 
 
 
     # Mem Access phase
-    print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (Mem) No memory access required ')
+    if   opcode_decoded == 'sw' :
+        print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (Mem) Data Memory needs to written onto  ')
+
+        # Do data memory stuff ...
+
+    elif opcode_decoded == 'lw' :
+        print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (Mem) No memory access required ')
+
+        # Do data memory stuff ...
+        
+    else:
+        print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (Mem) No memory access required ')
+
     clk+=1
 
 
 
     # MemWriteBack phase
-    print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (WriteBack) Writing ALU output back to RegFile  \n')
+    if opcode_decoded != 'lw' :
+        print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (WriteBack) Writing ALU output back to RegFile  \n')
+        if opcode_decoded in decodings.i_type :
+            register_file[rt_decoded] = output
+            print(begining_space + f'registers {rt_decoded} contains :-  {output}\n')
+        else:
+            register_file[rd_decoded] = output
+            print(begining_space + f'registers {rd_decoded} contains :-  {output}\n')
+    else:
+        print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (Mem) No Writing back to register file required ')
 
-    register_file[rt_decoded] = output
 
-    print(begining_space + f'registers {rt_decoded} contains :-  {output}\n')
+
+
     clk+=1
-
     instruction_number += 1
-
-
-
-# for instruction_number, line in enumerate(instruction_memory):
-#     line = line.strip()
-#     instruction_number += 1
-
-
-#     # IF Phase
-#     print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:-  (IF)   PC -> {line}')
-#     clk += 1
-
-
-
-#     # ID Phase
-#     print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:-  (ID)   instruction decoded as :-\n')
-
-#     opcode = line[:6]
-#     opcode_decoded = decodings.opcode_decodings[opcode]
-#     print(begining_space + f'Instruction[31:26] --- {opcode} --- {opcode_decoded}')
-
-
-#     if opcode_decoded in decodings.i_type :
-#         rs = line[6:11]
-#         rt = line[11:16]
-#         imm = line[16:]
-#         rs_decoded = decodings.register_decoding[rs]        
-#         rt_decoded = decodings.register_decoding[rt]
-#         print(begining_space + f'Instruction[25:21] --- {rs} --- {rs_decoded} ')
-#         print(begining_space + f'Instruction[20:16] --- {rt} --- {rt_decoded} ')
-#         print(begining_space + f'Instruction[15:0 ] --- {imm} --- {int(imm)}\n')
-
-#         print(begining_space + f'{opcode_decoded}    {rt_decoded}, {rs_decoded}, {int(imm)}\n')
-
-#     clk+=1
-
-#     # ALU phase
-#     print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:-  (Ex)  ALU performing addition\n')
-
-#     print(begining_space + f'register {rs_decoded} contains  :- {register_file[rs_decoded]}')
-#     print(begining_space + f'immediate value        :- {int(imm)}')
-#     print(begining_space + 'ALU executing...')
-#     print(begining_space + 'Output computed and stored in register ' + str(rs_decoded))
-
-#     # ALU addition
-#     output = int(imm) + register_file[rs_decoded]
-
-
-#     # Mem Access phase
-#     print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (Mem) No memory access required  \n')
-
-
-
-#     # MemWriteBack phase
-#     print(begining_space + f'registers {rt_decoded} contains :-  {output}\n')

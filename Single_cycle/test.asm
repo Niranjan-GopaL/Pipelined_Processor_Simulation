@@ -9,7 +9,7 @@ outer_loop__:
     beq     $s0, $t0, print_sorted_loop_init__
 
     # inner loop initialisation
-    addi    $s1, $0	, 0		            # j = 0
+    addi    $s1, $0	, 0		        # j = 0
     sub		$t3, $t0, $s0		    # $t3 <- N - i    ( you can do this using one register)
 
     inner_loop__:

@@ -1,3 +1,4 @@
+
 opcode_decodings = {
     '001000': 'addi', 
     '100011': 'lw',
@@ -10,9 +11,13 @@ opcode_decodings = {
 }
 
 
-i_type = ['addi', 'lw', 'sw'  ]
-r_type = ['add',  'mul', 'sub']
-jump_branch = ['j', 'branch']
+i_type              = ['addi', 'lw', 'sw'  ]
+r_type              = ['add',  'mul', 'sub']
+load_store_encoding = ['lw','sw',          ]
+jump_branch         = ['j', 'branch'       ]
+
+
+
 
 register_decoding = {
      '00000': '$0', 
