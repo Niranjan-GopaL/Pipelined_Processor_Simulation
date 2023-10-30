@@ -91,7 +91,51 @@ clock cycle 5    : Instruction No 1 :-  (RegWrite) No register write back
 
 ''' For Branch Insteruction output we'll try to do :-
 
+clock cycle 1    : Instruction No 1 :-  (IF)   PC -> 101010101101010101101010101101010101
+clock cycle 2    : Instruction No 1 :-  (ID)   instruction decoded as :-
 
+                        Instruction[31:26] --- 10010 --- beq
+                        Instruction[25:21] --- 10010 --- $s0 
+                        Instruction[20:16] --- 10010 --- $s0
+                        Instruction[15:0 ] --- 10010000000000000 --- 0
+
+                        beq    $s0, $t0 , 0
+
+( 2 possibilies )       
+----------------------------------------------------------------------------------------------                 
+clock cycle 3    : Instruction No 1 :-  (Ex)  ALU performing subtraction
+
+                        register $rs contains  :- 124
+                        register $rt contains  :- 120
+
+                        ALU executing...
+                        Output computed as     :- 124 - 120 = 4
+
+                        No branching occurs
+----------------------------------------------------------------------------------------------                 
+
+
+
+----------------------------------------------------------------------------------------------                 
+clock cycle 3    : Instruction No 1 :-  (Ex)  ALU performing subtraction
+
+                        register $rs contains  :- 124
+                        register $rt contains  :- 124
+
+                        ALU executing...
+                        Output computed as     :- 124 - 124 = 0
+
+                        imm value              :- 12
+                        left shift by 2        :- 48
+
+                        => PC = PC + 4 + 12 * 4
+----------------------------------------------------------------------------------------------                 
+
+                        
+
+
+clock cycle 4    : Instruction No 1 :-  (Mem) No memory access required  
+clock cycle 5    : Instruction No 1 :-  (RegWrite) No register write back
 
 '''
 
@@ -115,11 +159,19 @@ clk = 1
 
 instruction_number = 1
 eof = len(instruction_memory)
+branch_jump_flag = 0
+
+
 
 while instruction_number - 1 != eof :
     output = 0
 
-    line = instruction_memory[instruction_number - 1] 
+    # resetting if triggered  
+    if branch_jump_flag == 1: 
+        branch_jump_flag = 0
+    else:
+        line = instruction_memory[instruction_number - 1] 
+
     line = line.strip()
     
     # IF Phase
@@ -136,9 +188,9 @@ while instruction_number - 1 != eof :
     print(begining_space + f'Instruction[31:26] --- {opcode} --- {opcode_decoded}')
 
 
-    if opcode_decoded in decodings.i_type or opcode_decoded in decodings.load_store_encoding :
-        rs = line[6:11]
-        rt = line[11:16]
+    if opcode_decoded in decodings.i_type or opcode_decoded in decodings.load_store_encoding or opcode_decoded in ['beq', 'ble']:
+        rs  = line[6:11]
+        rt  = line[11:16]
         imm = line[16:]
         rs_decoded = decodings.register_decoding[rs]        
         rt_decoded = decodings.register_decoding[rt]
@@ -227,6 +279,34 @@ while instruction_number - 1 != eof :
             operation_character = '*'
 
         print(begining_space + f'Output computed as     :-  + {register_file[rs_decoded]} {operation_character} {register_file[rt_decoded]} = {output}\n\n')
+
+
+
+    if opcode_decoded == "beq":
+        print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:-  (Ex)  ALU performing subtraction\n')
+
+        print(begining_space + f'register {rs_decoded} contains  :- {register_file[rs_decoded]}')
+        print(begining_space + f'register {rt_decoded} contains  :- {register_file[rt_decoded]}')
+
+        print(begining_space + 'ALU executing...\n')
+
+        # ALU operation
+        output = rs_value - rt_value
+
+        if output != 0 :
+            print(begining_space + f'Output computed as     :- {register_file[rt_decoded]} - {register_file[rs_decoded]} = {output}\n')
+            print(begining_space + 'No branching happens...\n\n')
+            continue
+        else:
+            print(begining_space + f'Output computed as     :- {register_file[rt_decoded]} - {register_file[rs_decoded]} = {output}\n')
+            print(begining_space + 'Branching happens...\n')
+            print(begining_space + f'immediate value        :- {int(imm,2)}')
+            print(begining_space + f'imm value lshifted by 2:- {int(imm,2)*4}\n\n')
+            print(begining_space + f'New PC = PC + 4 + imm*4 = PC + 4 + {int(imm,2)*4}')
+
+            line = instruction_memory[instruction_number - 1 + 1 + int(imm,2) ]
+            branch_jump_flag = 1
+            continue
 
 
     clk+=1

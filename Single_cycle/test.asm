@@ -27,9 +27,8 @@ outer_loop__:
     no_swap:
     addi     $s1, $s1, 1            # j++
     addi     $t2, $t2, 4            # t2 += 4   
-    j		inner_loop__				# next iteration of inner loop
+    beq		 $0 , $0 , inner_loop__				# next iteration of inner loop
 
 
 print_sorted_loop_init__:
 addi    $s1, $0	, 0		            # j = 0
-    z
