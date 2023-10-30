@@ -2,14 +2,14 @@ import decodings
 
 
 instruction_memory = []
-data_memory        = [0]*100
+data_memory        = [12341234]*100
 
 register_file = {
     '$0': 0,
 
     '$t0': 10,
     '$t1': '01001',
-    '$t2': 43123,
+    '$t2': 43,
     '$t3': '01011',
     '$t4': '01100',
     '$t5': '01101',
@@ -21,8 +21,8 @@ register_file = {
     '$s0': 12,
     '$s1': '10001',
     '$s2': '10010',
-    '$s3': '10011',
-    '$s4': '10100',
+    '$s3': 333333,
+    '$s4': 444444,
     '$s5': '10101',
     '$s6': '10110',
     '$s7': '10111',
@@ -65,6 +65,30 @@ clock cycle 5    : Instruction No 1 :-  (RegWrite)
                         
 '''
 
+''' load
+clock cycle 4    : Instruction No 1 :-  (Mem) Memory access initiation ...
+
+                        Memory[ rs + imm ]  
+                        Memory[ 4324 + 12 ] =  value_in_mem
+
+clock cycle 5    : Instruction No 1 :-  (RegWrite) Writing back to register   
+
+                        registers $s0 =  Memory[ 4336 ] = value_in_mem 
+'''
+
+''' store
+clock cycle 4    : Instruction No 1 :-  (Mem) Memory access initiation ...
+
+                        registers $rt = ...
+
+                        Memory[ rs + imm ]     
+                        Memory[ 4324 + 12 ] =  ...
+
+clock cycle 5    : Instruction No 1 :-  (RegWrite) No register write back
+'''
+
+
+
 ''' For Branch Insteruction output we'll try to do :-
 
 
@@ -77,11 +101,10 @@ clock cycle 5    : Instruction No 1 :-  (RegWrite)
 
 #  [*]-> addi instruction
 #  [*]-> sub instruction
-#  []-> lw  instruction
-#  []-> sw  instruction
+#  [*]-> lw  instruction
+#  [*]-> sw  instruction
 #  []-> beq  instruction ( Do later )               
 #  []-> j  instruction
-#  []-> sw  instruction
 
 
 
@@ -113,7 +136,7 @@ while instruction_number - 1 != eof :
     print(begining_space + f'Instruction[31:26] --- {opcode} --- {opcode_decoded}')
 
 
-    if opcode_decoded in decodings.i_type :
+    if opcode_decoded in decodings.i_type or opcode_decoded in decodings.load_store_encoding :
         rs = line[6:11]
         rt = line[11:16]
         imm = line[16:]
@@ -121,21 +144,22 @@ while instruction_number - 1 != eof :
         rt_decoded = decodings.register_decoding[rt]
         print(begining_space + f'Instruction[25:21] --- {rs} --- {rs_decoded} ')
         print(begining_space + f'Instruction[20:16] --- {rt} --- {rt_decoded} ')
-        print(begining_space + f'Instruction[15:0 ] --- {imm} --- {int(imm)}\n')
+        print(begining_space + f'Instruction[15:0 ] --- {imm} --- {int(imm,2)}\n')
 
-        print(begining_space + f'{opcode_decoded}    {rt_decoded}, {rs_decoded}, {int(imm)}\n')
+        if opcode_decoded in decodings.load_store_encoding :
+            print(begining_space + f'{opcode_decoded}    {rt_decoded}, {int(imm,2)}({rs_decoded}), \n')
+        else:
+            print(begining_space + f'{opcode_decoded}    {rt_decoded}, {rs_decoded}, {int(imm,2)}\n')
 
-    if opcode_decoded in decodings.load_store_encoding :
-        rs = line[6:11]
-        rt = line[11:16]
-        imm = line[16:]
-        rs_decoded = decodings.register_decoding[rs]        
-        rt_decoded = decodings.register_decoding[rt]
-        print(begining_space + f'Instruction[25:21] --- {rs} --- {rs_decoded} ')
-        print(begining_space + f'Instruction[20:16] --- {rt} --- {rt_decoded} ')
-        print(begining_space + f'Instruction[15:0 ] --- {imm} --- {int(imm)}\n')
+        # rs = line[6:11]
+        # rt = line[11:16]
+        # imm = line[16:]
+        # rs_decoded = decodings.register_decoding[rs]        
+        # rt_decoded = decodings.register_decoding[rt]
+        # print(begining_space + f'Instruction[25:21] --- {rs} --- {rs_decoded} ')
+        # print(begining_space + f'Instruction[20:16] --- {rt} --- {rt_decoded} ')
+        # print(begining_space + f'Instruction[15:0 ] --- {imm} --- {int(imm,2)}\n')
 
-        print(begining_space + f'{opcode_decoded}    {rt_decoded}, {int(imm)}({rs_decoded}), \n')
 
 
     elif opcode_decoded in decodings.r_type:
@@ -155,7 +179,7 @@ while instruction_number - 1 != eof :
         print(begining_space + f'Instruction[15:11] --- {rd} --- {rd_decoded} ')
 
         print(begining_space + f'Instruction[10:6 ] --- {shamt} --- 0 ')
-        print(begining_space + f'Instruction[5 :0  ] --- {func} --- {func_decoded} ')
+        print(begining_space + f'Instruction[5 :0 ] --- {func} --- {func_decoded}\n')
 
         print(begining_space + f'{func_decoded}    {rd_decoded}, {rs_decoded}, {rt_decoded}\n')
 
@@ -164,17 +188,17 @@ while instruction_number - 1 != eof :
 
 
     # ALU phase
-    if opcode_decoded in decodings.i_type or opcode_decoded in decodings.load_store_encoding :
+    if (opcode_decoded in decodings.i_type) or (opcode_decoded in decodings.load_store_encoding) :
         print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:-  (Ex)  ALU performing addition\n')
 
         print(begining_space + f'register {rs_decoded} contains  :- {register_file[rs_decoded]}')
-        print(begining_space + f'immediate value        :- {int(imm)}')
-        print(begining_space + 'ALU executing...')
+        print(begining_space + f'immediate value        :- {int(imm,2)}')
+        print(begining_space + 'ALU executing...\n')
 
         # ALU addition
-        output = int(imm) + register_file[rs_decoded]
+        output = int(imm,2) + register_file[rs_decoded]
 
-        print(begining_space + f'Output computed as     :-  + {register_file[rs_decoded]} + {int(imm)} = {output}\n\n')
+        print(begining_space + f'Output computed as     :- {register_file[rs_decoded]} + {int(imm,2)} = {output}\n\n')
 
     if opcode_decoded in decodings.r_type :
         opertaion = { 'sub': "subrtation", 'add': "addition", 'mul': "multiplication"}
@@ -183,7 +207,7 @@ while instruction_number - 1 != eof :
         print(begining_space + f'register {rs_decoded} contains  :- {register_file[rs_decoded]}')
         print(begining_space + f'register {rt_decoded} contains  :- {register_file[rt_decoded]}')
 
-        print(begining_space + 'ALU executing...')
+        print(begining_space + 'ALU executing...\n')
 
 
         rs_value = register_file[rs_decoded]
@@ -214,14 +238,26 @@ while instruction_number - 1 != eof :
 
     # Mem Access phase
     if   opcode_decoded == 'sw' :
-        print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (Mem) Data Memory needs to written onto  ')
+        print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (Mem) Data Memory needs to written onto ...  ')
 
-        # Do data memory stuff ...
+
+        print(begining_space + f'register {rt_decoded} = {register_file[rt_decoded]}\n')
+
+        print(begining_space + f'Memory[ rs + imm ]')
+        print(begining_space + f'Memory[ {rs_decoded} + {int(imm,2)} ]')
+
+        # Writing to data memory
+        data_memory[output]  = register_file[rt_decoded]
+
+        print(begining_space + f'Memory[ {output}] = {register_file[rt_decoded]} ')
+
 
     elif opcode_decoded == 'lw' :
         print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (Mem) No memory access required ')
+        register_file[rt_decoded] =  data_memory[output]
 
-        # Do data memory stuff ...
+        print(begining_space + f'Memory[ rs + imm ]')
+        print(begining_space + f'Memory[ {rs_decoded} + {int(imm,2)} ] = {data_memory[output]}')
         
     else:
         print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (Mem) No memory access required ')
@@ -231,11 +267,19 @@ while instruction_number - 1 != eof :
 
 
     # MemWriteBack phase
-    if opcode_decoded != 'lw' :
+    if opcode_decoded != 'sw' :
         print(f'clock cycle {clk:<5}: Instruction No {instruction_number:<5}:- (WriteBack) Writing ALU output back to RegFile  \n')
-        if opcode_decoded in decodings.i_type :
+        
+        if opcode_decoded == 'lw' :
+            register_file[rt_decoded] = data_memory[output]
+            print(begining_space + f'registers {rt_decoded} = Memory[ {output} ] = {data_memory[output]}\n')
+
+
+        elif opcode_decoded in decodings.i_type :
             register_file[rt_decoded] = output
             print(begining_space + f'registers {rt_decoded} contains :-  {output}\n')
+
+
         else:
             register_file[rd_decoded] = output
             print(begining_space + f'registers {rd_decoded} contains :-  {output}\n')
