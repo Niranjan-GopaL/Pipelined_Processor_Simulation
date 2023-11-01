@@ -44,6 +44,10 @@ clock cycle 2    : Instruction No 1 :-  (ID)   instruction decoded as :-
                         Instruction[25:21] --- 10010 --- $s0 
                         Instruction[20:16] --- 10010 --- $s0
                         Instruction[15:0 ] --- 10010000000000000 --- 0
+df
+
+
+
 
                         addi    $s0, $t0 , 0
 
