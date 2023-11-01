@@ -168,15 +168,21 @@ if choice :
     t1 = int(input("Enter base address of input:"))
     t2 = int(input("Enter base address of output:"))
 
-    file_path = "test_bin_dump.txt" 
+    file_path = "bin_sort_CLEAN.txt" 
     with open(file_path, "r") as file:
         instruction_memory = file.readlines()
+
+    offset = t2 - t1
+    for i in range(t1,t1 + t0):
+            num = int(input("Enter the number:"))
+            data_memory[i*4] = num
+            data_memory[offset + i*4 ] = num 
         
 else:
     t0 = int(input("Enter number to find factorial:"))
     t2 = int(input("Enter base address of output:"))
 
-    file_path = "test_bin_dump.txt" 
+    file_path = "bin_factorial_CLEAN.txt" 
     with open(file_path, "r") as file:
         instruction_memory = file.readlines()
 
@@ -207,13 +213,8 @@ register_file = {
 }
 
 
-# Remember to give ONLY 
 
-# offset = t2 - t1
-# for i in range(t1,t1 + t0):
-#         num = int(input("Enter the number:"))
-#         data_memory[i*4] = num
-#         data_memory[offset + i*4 ] = num 
+
 
 
 
