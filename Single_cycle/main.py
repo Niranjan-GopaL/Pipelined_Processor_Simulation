@@ -26,7 +26,19 @@ import decodings
 #     '$s7': '10111',
 # }
 
+def integer_of_16_bit_imm(binary_str):
+    is_negative = binary_str[0] == '1'
 
+    if is_negative:
+        inverted_str = ''.join('1' if bit == '0' else '0' for bit in binary_str)
+        binary_str = bin(int(inverted_str, 2) + 1)[2:]  
+
+    decimal_value = int(binary_str, 2)
+
+    if is_negative:
+        decimal_value = -decimal_value
+
+    return decimal_value
 
 
 instruction_memory = []
@@ -150,7 +162,7 @@ clock cycle 5    : Instruction No 1 :-  (RegWrite) No register write back
 
 
 t0 = int(input("Enter number of integers:"))
-t1 = int(input("Enter base address of input:"))
+# t1 = int(input("Enter base address of input:"))
 t2 = int(input("Enter base address of output:"))
 
 
@@ -158,7 +170,7 @@ register_file = {
         "$0":0,
 
         "$t0" : t0,
-        "$t1" : t1,
+        "$t1" : 0,
         "$t2" : t2,
         "$t3" : 0,
         "$t4" : 0,
@@ -180,24 +192,13 @@ register_file = {
 }
 
 
-for i in range(t1, t1 + t0 ):
-        data_memory[i] = int(input("Enter the number:"))
+# Remember to give ONLY 
 
-
-
-def integer_of_16_bit_imm(binary_str):
-    is_negative = binary_str[0] == '1'
-
-    if is_negative:
-        inverted_str = ''.join('1' if bit == '0' else '0' for bit in binary_str)
-        binary_str = bin(int(inverted_str, 2) + 1)[2:]  
-
-    decimal_value = int(binary_str, 2)
-
-    if is_negative:
-        decimal_value = -decimal_value
-
-    return decimal_value
+# offset = t2 - t1
+# for i in range(t1,t1 + t0):
+#         num = int(input("Enter the number:"))
+#         data_memory[i*4] = num
+#         data_memory[offset + i*4 ] = num 
 
 
 
@@ -237,10 +238,12 @@ while instruction_number - 1 != eof :
         rt  = line[11:16]
         imm = line[16:]
 
+
         rs_decoded = decodings.register_decoding[rs]        
         rt_decoded = decodings.register_decoding[rt]
         imm_decoded = integer_of_16_bit_imm(imm)
-        
+
+
         print(begining_space + f'Instruction[25:21] --- {rs} --- {rs_decoded} ')
         print(begining_space + f'Instruction[20:16] --- {rt} --- {rt_decoded} ')
         print(begining_space + f'Instruction[15:0 ] --- {imm} --- {imm_decoded}\n')
@@ -316,7 +319,7 @@ while instruction_number - 1 != eof :
             operation_character = '*'
 
         elif func_decoded == 'slt':
-            output = rs_value <  rt_value
+            output = 1 if rs_value <  rt_value else 0
             operation_character = '<'
 
         print(begining_space + f'Output computed as     :-  + {register_file[rs_decoded]} {operation_character} {register_file[rt_decoded]} = {output}\n\n')
@@ -414,9 +417,26 @@ while instruction_number - 1 != eof :
 
 
 
-
     clk+=1
     instruction_number += 1
 
 
-print(data_memory)
+# print(data_memory)
+    
+           
+print("\n\n\n\n<<---------DATA MEMORY------------>>\n\n")
+for i in range(0,len(data_memory), 4):
+    for j in range(i,i+4):
+        print(data_memory[j], end= '\t')
+    print()
+    print("--------------------------------------")
+
+
+
+'''
+3  2  1
+
+
+i = 0
+
+'''
