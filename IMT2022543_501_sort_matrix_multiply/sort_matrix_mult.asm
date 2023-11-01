@@ -72,7 +72,7 @@ move    $t7, $t2                # temporily store t2 -> t7
 move    $s0, $zero	            # loop vairable (i)  -> s0
 
 loop1_:  
-        beq $s0, $t0, loop1end_ # 
+        beq $s0, $t0, loop1end_  
 
 	    jal print_enter_int_from_user
 	    jal get_input_int
@@ -87,7 +87,7 @@ loop1_:
 
 loop1end_: 
         move $t1, $t8           # t1'    value restored from t8  
-        move $t2, $t7           # t1's value restored from t8  
+        move $t2, $t7           # t1's   value restored from t8  
 
 
 
@@ -98,22 +98,21 @@ loop1end_:
 # s1 <- inner_loop variable
 
 # outer loop initialisation
-addi    $s0, $0	, 0		            # j = 0
+addi    $s0, $0	, 0		            # i = 0
 addi	$t5, $t2, 0			        # t5  <- temp_t2 
 
 outer_loop__:
     addi    $s0, $s0, 1             # i++
     addi    $t2, $t5, 0             # restoring t2 back to start of array
 
-
     beq     $s0, $t0, print_sorted_loop_init__
 
     # inner loop initialisation
-    addi    $s1, $0	, 0		            # j = 0
+    addi    $s1, $0	, 0		        # j = 0
     sub		$t3, $t0, $s0		    # $t3 <- N - i    ( you can do this using one register)
 
     inner_loop__:
-    beq     $s1, $t3, outer_loop__    # j == N - i go to outer lopp
+    beq     $s1, $t3, outer_loop__  # j == N - i go to outer lopp
 
     lw      $s3, 0($t2)             # s3 <- M[ t2 ]
     lw      $s4, 4($t2)             # s4 <- M[t2+4]
@@ -128,6 +127,9 @@ outer_loop__:
     addi     $s1, $s1, 1            # j++
     addi     $t2, $t2, 4            # t2 += 4
     j		inner_loop__				# next iteration of inner loop
+
+
+
 
 
 print_sorted_loop_init__:
@@ -216,7 +218,7 @@ loop1:  beq $s0, $t1, loop1end
 
 	    addi $t5, $t5, 4      # updating t5 to have t5+4 value
       	addi $s0, $s0, 1      # s0 ++
-        j loop1               # jump to top
+        beq  $0 , $0 , loop1  # jump to top
 
 loop1end: move $t5, $t8  # t5's value restored from t8  
 
@@ -321,7 +323,7 @@ add     $t2, $t2, $s6       # C[k] += s6
 addi	$s1, $s1, 1			# j++ 
 
 
-j		inner_loop			# jump to inner_loop
+beq		$0 , $0 ,inner_loop			# jump to inner_loop
 
 
 
@@ -333,7 +335,7 @@ sw		$t2, 0($t7)
 addi	$t7, $t7, 4			# moving to next address of matrix C to fill
 addi	$s4, $s4, 1			# s4++ ( column offset++)
 
-j       outer_loop
+beq		$0 , $0 , outer_loop
 
 
 DONE:

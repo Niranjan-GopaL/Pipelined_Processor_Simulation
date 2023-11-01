@@ -1,8 +1,10 @@
 import decodings
 
 
+
 instruction_memory = []
 data_memory        = [0]*100
+
 
 register_file = {
     '$0': 0,
@@ -30,9 +32,97 @@ register_file = {
 
 
 
-
-
 file_path = "test_bin_dump.txt" 
 with open(file_path, "r") as file:
     instruction_memory = file.readlines()
+
+'''
+clock cycle 1    : Instruction No 1 :-  (IF)   PC -> 101010101101010101101010101101010101
+clock cycle 2    : Instruction No 1 :-  (ID)   instruction decoded as :-
+
+                        Instruction[31:26] --- 10010 --- addi
+                        Instruction[25:21] --- 10010 --- $s0 
+                        Instruction[20:16] --- 10010 --- $s0
+                        Instruction[15:0 ] --- 10010000000000000 --- 0
+
+                        addi    $s0, $t0 , 0
+
+clock cycle 1    : Instruction No 2 :-  (IF)   PC -> 101010101101010101101010101101010101
+
+clock cycle 3    : Instruction No 1 :-  (Ex)  ALU performing addition 
+
+                         Instruction No 2 :-  (ID)   instruction decoded as :-
+
+                        Instruction[31:26] --- 10010 --- addi
+                        Instruction[25:21] --- 10010 --- $s0 
+                        Instruction[20:16] --- 10010 --- $s0
+                        Instruction[15:0 ] --- 10010000000000000 --- 0
+
+                        addi    $s0, $t0 , 0
+
+                         Instruction No 3 :-  (IF)   PC -> 101010101101010101101010101101010101
+
+
+
+
+clock cycle 4    : Instruction No 1 :-  (Mem) No memory access required  
+clock cycle 5    : Instruction No 1 :-  (RegWrite)   
+
+                        registers $s0 contains :-  123
+
+
+
+'''
+
+
+def IF(line):
+    pass
+
+
+def ID(line):
+    pass
+
+
+def Exe(line):
+    pass
+
+
+def Mem(line):
+    pass
+
+
+def WB(line):
+    pass
+
+
+
+clk = 1; instruction_number = 1
+eof = len(instruction_memory)
+branch_jump_flag = 0
+
+
+line = instruction_memory[instruction_number - 1] 
+
+
+IF(line)
+
+ID(line)
+IF(line)
+
+Exe(line)
+
+
+while instruction_number - 1 != eof :
+
+    output = 0
+
+
+
+
+
+
+
+
+
+
 

@@ -18,7 +18,10 @@ outer_loop__:
     lw      $s3, 0($t2)             # s3 <- M[ t2 ]
     lw      $s4, 4($t2)             # s4 <- M[t2+4]
 
-    ble		$s3, $s4, no_swap       # Only if A[j] > A[j+1] we'll swap
+    # Only if A[j] > A[j+1] we'll swap
+    slt		$t1, $s3, $s4		    # $t1 = ($s3 < $s4) ? 1 : 0
+    beq     $t1, $0, no_swap        # j == N - i go to outer lopp
+    
 
     # swapping
     sw		$s3, 4($t2)		        # s3 -> M[t2+4]

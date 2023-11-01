@@ -8,11 +8,12 @@ opcode_decodings = {
     '000000': 'sub',
     '011100': 'mul',
     '000000': 'add',
+    '000000': 'slt',
 }
 
 
-i_type              = ['addi', 'lw', 'sw'  ]
-r_type              = ['add',  'mul', 'sub']
+i_type              = ['addi', 'lw',  'sw'  ]
+r_type              = ['add',  'mul', 'sub', 'slt']
 load_store_encoding = ['lw','sw',          ]
 jump_branch         = ['j', 'branch'       ]
 
@@ -47,7 +48,6 @@ register_decoding = {
 func_encoding = {
     '100010': 'sub', 
     '100000': 'add', 
-    '000010': 'mul', 
+    '000010': 'mul',
+    '101010': 'slt', 
 }
-
-
