@@ -44,9 +44,6 @@ def integer_of_16_bit_imm(binary_str):
 instruction_memory = []
 data_memory        = [0]*100
 
-file_path = "test_bin_dump.txt" 
-with open(file_path, "r") as file:
-    instruction_memory = file.readlines()
 
 
 '''Output we trying for :-
@@ -161,16 +158,34 @@ clock cycle 5    : Instruction No 1 :-  (RegWrite) No register write back
 #  [*]-> j  instruction
 
 
-t0 = int(input("Enter number of integers:"))
-# t1 = int(input("Enter base address of input:"))
-t2 = int(input("Enter base address of output:"))
+
+# 1 for sorting 
+# 0 for factorial
+choice = 0
+
+if choice :
+    t0 = int(input("Enter number of integers:"))
+    t1 = int(input("Enter base address of input:"))
+    t2 = int(input("Enter base address of output:"))
+
+    file_path = "test_bin_dump.txt" 
+    with open(file_path, "r") as file:
+        instruction_memory = file.readlines()
+        
+else:
+    t0 = int(input("Enter number to find factorial:"))
+    t2 = int(input("Enter base address of output:"))
+
+    file_path = "test_bin_dump.txt" 
+    with open(file_path, "r") as file:
+        instruction_memory = file.readlines()
 
 
 register_file = {
         "$0":0,
 
         "$t0" : t0,
-        "$t1" : 0,
+        "$t1" : t1 if choice else 0,
         "$t2" : t2,
         "$t3" : 0,
         "$t4" : 0,
