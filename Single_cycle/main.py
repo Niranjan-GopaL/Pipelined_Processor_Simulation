@@ -1,36 +1,36 @@
 import decodings
 
 
+
+# register_file = {
+#     '$0': 0,
+
+#     '$t0': 10,
+#     '$t1': '01001',
+#     '$t2': 43,
+#     '$t3': '01011',
+#     '$t4': '01100',
+#     '$t5': '01101',
+#     '$t6': '01110',
+#     '$t7': '01111',
+#     '$t8': '11000',
+#     '$t9': '11001',
+
+#     '$s0': 12,
+#     '$s1': '10001',
+#     '$s2': '10010',
+#     '$s3': 333333,
+#     '$s4': 444444,
+#     '$s5': '10101',
+#     '$s6': '10110',
+#     '$s7': '10111',
+# }
+
+
+
+
 instruction_memory = []
-data_memory        = [12341234]*100
-
-register_file = {
-    '$0': 0,
-
-    '$t0': 10,
-    '$t1': '01001',
-    '$t2': 43,
-    '$t3': '01011',
-    '$t4': '01100',
-    '$t5': '01101',
-    '$t6': '01110',
-    '$t7': '01111',
-    '$t8': '11000',
-    '$t9': '11001',
-
-    '$s0': 12,
-    '$s1': '10001',
-    '$s2': '10010',
-    '$s3': 333333,
-    '$s4': 444444,
-    '$s5': '10101',
-    '$s6': '10110',
-    '$s7': '10111',
-}
-
-
-
-
+data_memory        = [0]*100
 
 file_path = "test_bin_dump.txt" 
 with open(file_path, "r") as file:
@@ -148,6 +148,40 @@ clock cycle 5    : Instruction No 1 :-  (RegWrite) No register write back
 #  [*]-> beq  instruction ( Do later )               
 #  [*]-> j  instruction
 
+
+t0 = int(input("Enter number of integers:"))
+t1 = int(input("Enter base address of input:"))
+t2 = int(input("Enter base address of output:"))
+
+
+register_file = {
+        "$0":0,
+
+        "$t0" : t0,
+        "$t1" : t1,
+        "$t2" : t2,
+        "$t3" : 0,
+        "$t4" : 0,
+        "$t5" : 0,
+        "$t6" : 0,
+        "$t7" : 0,
+        "$t8" : 0,
+        "$t9" : 0,
+
+        "$s0" : 0,
+        "$s1" : 0,
+        "$s2" : 0,
+        "$s3" : 0,
+        "$s4" : 0,
+        "$s5" : 0,
+        "$s6" : 0,
+        "$s7" : 0,
+
+}
+
+
+for i in range(t1, t1 + t0 ):
+        data_memory[i] = int(input("Enter the number:"))
 
 
 
@@ -383,3 +417,6 @@ while instruction_number - 1 != eof :
 
     clk+=1
     instruction_number += 1
+
+
+print(data_memory)
