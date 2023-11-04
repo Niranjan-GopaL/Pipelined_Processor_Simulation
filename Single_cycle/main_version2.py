@@ -19,38 +19,20 @@ def integer_of_16_bit_imm(binary_str):
 
 
 
-class ALU:
-     
-     def __init__(self):
-         pass
- 
- 
-     def adder():
-         pass
- 
-     def subtractor():
-         pass
- 
-     def mutliplier():
-        pass
-     
-
-
-
 class Processor :
      
-     def __init__(self):
+    def __init__(self):
         self.pc = 1
         
         self.instruction_memory  = []
         self.register_file = {}
-        self.ALU = ALU()
+        # self.ALU_unit = "A SEPARATE CLASS FOR ALU"
         self.data_memory = [0]*200
-        self.eof = len(self.instruction_memory)
+        self.eof = 0
 
         self.instruction   = ""
 
-        self.self.opcode_decoded = ""
+        self.opcode_decoded = ""
         self.rs_decoded     = ""        
         self.rt_decoded     = ""
         self.rd_decoded     = ""
@@ -60,14 +42,14 @@ class Processor :
         self.ALU_output     = ""
 
 
-     def IF(self,clk):
+    def IF(self,clk):
         line  = self.instruction_memory[self.pc - 1]
         self.instruction = line.strip()
         print(f'clock cycle {clk:<5}: Instruction No {self.pc :<5}:-  (IF)   PC -> {self.instruction}')
 
 
 
-     def ID(self,clk):
+    def ID(self,clk):
         print(f'clock cycle {clk:<5}: Instruction No {self.pc :<5}:-  (ID)   instruction decoded as :-\n')
 
         opcode = self.instruction[:6]
@@ -121,7 +103,7 @@ class Processor :
 
 
 
-     def ALU(self,clk):
+    def ALU(self,clk):
 
         if (self.opcode_decoded in decodings.i_type) or (self.opcode_decoded in decodings.load_store_encoding) :
             print(f'clock cycle {clk:<5}: Instruction No {self.pc:<5}:-  (Ex)  ALU performing addition\n')
@@ -203,7 +185,7 @@ class Processor :
        
 
     # Data Memory access stage 
-     def Mem(self,clk):
+    def Mem(self,clk):
             if   self.opcode_decoded == 'sw' :
                 print(f'clock cycle {clk:<5}: Instruction No {self.pc:<5}:- (Mem) Data Memory needs to written onto ...  ')
 
@@ -230,18 +212,18 @@ class Processor :
 
 
      #  Write Back phase
-     def WB(self,clk):
+    def WB(self,clk):
          if self.opcode_decoded != 'sw' :
             print(f'clock cycle {clk:<5}: Instruction No {self.pc:<5}:- (WriteBack) Writing ALU output back to RegFile  \n')
             
             if self.opcode_decoded == 'lw' :
                 self.register_file[self.rt_decoded] = self.data_memory[self.ALU_output]
-                print(begining_space + f'registers {self.rt_decoded} = Memory[ {self.ALU_output} ] = {self.ata_memory[self.self.ALU_output]}\n')
+                print(begining_space + f'registers {self.rt_decoded} = Memory[ {self.ALU_output} ] = {self.data_memory[self.ALU_output]}\n')
 
 
             elif self.opcode_decoded in decodings.i_type :
                 self.register_file[self.rt_decoded] = self.ALU_output
-                print(begining_space + f'registers {self.rt_decoded} contains :-  {self.self.ALU_output}\n')
+                print(begining_space + f'registers {self.rt_decoded} contains :-  {self.ALU_output}\n')
 
 
             else:
@@ -261,13 +243,72 @@ class Processor :
 processor = Processor()
 
 
-file_path = "test_bin_dump.txt" 
-with open(file_path, "r") as file:
-    processor.instruction_memory = file.readlines()
+# 1 for sorting 
+# 0 for factorial
+
+choice = 1
+
+if choice :
+    t0 = int(input("Enter number of integers:"))
+    t1 = int(input("Enter base address of input:"))
+    t2 = int(input("Enter base address of output:"))
+
+    file_path = "bin_sort_CLEAN.txt" 
+    with open(file_path, "r") as file:
+        processor.instruction_memory = file.readlines()
+
+    offset = t2 - t1
+    for i in range(t1,t1 + t0):
+            num = int(input("Enter the number:"))
+            processor.data_memory[i*4] = num
+            processor.data_memory[offset + i*4 ] = num 
+        
+else:
+    t0 = int(input("Enter number to find factorial:"))
+    t2 = int(input("Enter base address of output:"))
+
+    file_path = "bin_factorial_CLEAN.txt" 
+    with open(file_path, "r") as file:
+        processor.instruction_memory = file.readlines()
+
+processor.eof = len(processor.instruction_memory)
+print(processor.eof)
+      
+
+processor.register_file = {
+        "$0":0,
+
+        "$t0" : t0,
+        "$t1" : t1 if choice else 0,
+        "$t2" : t2,
+        "$t3" : 0,
+        "$t4" : 0,
+        "$t5" : 0,
+        "$t6" : 0,
+        "$t7" : 0,
+        "$t8" : 0,
+        "$t9" : 0,
+
+        "$s0" : 0,
+        "$s1" : 0,
+        "$s2" : 0,
+        "$s3" : 0,
+        "$s4" : 0,
+        "$s5" : 0,
+        "$s6" : 0,
+        "$s7" : 0,
+
+}
 
 
 
-clk = 1; 
+
+
+
+
+
+clk = 1;
+
 
 while processor.pc  <= processor.eof:
  
@@ -289,4 +330,16 @@ while processor.pc  <= processor.eof:
     processor.WB(clk)
     clk+1
 
-    processor.pc += 1
+    processor.pc += 1   
+    
+    
+    
+               
+print("\n\n\n\n<<---------DATA MEMORY------------>>\n\n")
+
+print("-----------------------------")
+for i in range(0,len(processor.data_memory), 4):
+    for j in range(i,i+4):
+        print(processor.data_memory[j], end= '   |   ')
+    print()
+    print("-----------------------------")
