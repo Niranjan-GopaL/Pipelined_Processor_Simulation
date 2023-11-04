@@ -187,6 +187,7 @@ else:
         instruction_memory = file.readlines()
 
 
+
 register_file = {
         "$0":0,
 
@@ -441,12 +442,13 @@ while instruction_number - 1 != eof :
     
            
 print("\n\n\n\n<<---------DATA MEMORY------------>>\n\n")
+
+print("-----------------------------")
 for i in range(0,len(data_memory), 4):
     for j in range(i,i+4):
-        print(data_memory[j], end= '\t')
+        print(data_memory[j], end= '   |   ')
     print()
-    print("--------------------------------------")
-
+    print("-----------------------------")
 
 
 '''
