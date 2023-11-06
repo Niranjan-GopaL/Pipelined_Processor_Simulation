@@ -19,6 +19,7 @@ def integer_of_16_bit_imm(binary_str):
 
 
 
+
 class Processor :
      
     def __init__(self):
@@ -26,7 +27,6 @@ class Processor :
         
         self.instruction_memory  = []
         self.register_file = {}
-        # self.ALU_unit = "A SEPARATE CLASS FOR ALU"
         self.data_memory = [0]*200
         self.eof = 0
 
@@ -40,6 +40,8 @@ class Processor :
         self.imm_decoded    = ""
 
         self.ALU_output     = ""
+
+        self.Mem_out         = ""
 
 
     def IF(self,clk):
@@ -201,8 +203,9 @@ class Processor :
 
 
             elif self.opcode_decoded == 'lw' :
-                print(f'clock cycle {clk:<5}: Instruction No {self.pc:<5}:- (Mem) No memory access required ')
-                self.register_file[self.rt_decoded] =  self.data_memory[self.ALU_output]
+                print(f'clock cycle {clk:<5}: Instruction No {self.pc:<5}:- (Mem) Memory access required ')
+
+                self.Mem_out = self.data_memory[self.ALU_output]
 
                 print(begining_space + f'Memory[ rs + imm ]')
                 print(begining_space + f'Memory[ {self.rs_decoded} + {self.imm_decoded} ] = {self.data_memory[self.ALU_output]}')
@@ -217,7 +220,7 @@ class Processor :
             print(f'clock cycle {clk:<5}: Instruction No {self.pc:<5}:- (WriteBack) Writing ALU output back to RegFile  \n')
             
             if self.opcode_decoded == 'lw' :
-                self.register_file[self.rt_decoded] = self.data_memory[self.ALU_output]
+                self.register_file[self.rt_decoded] = self.Mem_out
                 print(begining_space + f'registers {self.rt_decoded} = Memory[ {self.ALU_output} ] = {self.data_memory[self.ALU_output]}\n')
 
 
