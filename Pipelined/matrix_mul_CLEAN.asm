@@ -39,13 +39,13 @@ mfhi	$t2					  # $t2 = s0 % $t0
 beq		$s0, $zero, inner_loop_init__
 bne     $t2, $zero, inner_loop_init__
 
-addi	$s3, $0, 1			# s3++ ( row offset++)
-addi	$s4, $0, 0	            # resetting the column offset 
+addi	$s3, $0, 1			  # s3++ ( row offset++)
+addi	$s4, $0, 0	          # resetting the column offset 
 
 
 inner_loop_init__:
-addi	$s1, $0, 0		        # $s1 <- 0 
-addi    $t2, $0, 0              # accumulator C[k]
+addi	$s1, $0, 0		      # $s1 <- 0 
+addi    $t2, $0, 0            # accumulator C[k]
 
 inner_loop:
 

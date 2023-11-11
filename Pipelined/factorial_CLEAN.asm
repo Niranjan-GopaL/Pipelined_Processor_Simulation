@@ -2,7 +2,6 @@
 #  t2 -> N
 
 
-addi    $t0, $0,  0
 addi    $t5, $t5, 1
 for:
 	beq  $t0, $0   endFor
@@ -12,6 +11,4 @@ for:
 
 endFor:
 	sw $t5,0($t2)
-
-
 
