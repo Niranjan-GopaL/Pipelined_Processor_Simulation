@@ -251,7 +251,7 @@ processor = Processor()
 # 1 for sorting 
 # 0 for factorial
 
-choice = 1
+choice = 0
 
 if choice :
     t0 = int(input("Enter number of integers:"))

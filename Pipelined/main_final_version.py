@@ -552,7 +552,7 @@ class Processor :
                 self.register_file[rt] = alu_out
                 print(begining_space + f'registers {rt} contains :-  {alu_out}\n')
 
-    
+
 
 
 
@@ -639,7 +639,7 @@ def ID_condition()  :
     return (pc-1 > 0) and (pc-1 <= processor.eof) and (beq_after_flush_flag-1 > 0)
     
 def IF_condition()  :
-    return pc < processor.eof
+    return pc <= processor.eof
 
 
 
@@ -647,9 +647,9 @@ while pc <= processor.eof + 5 :
  
     if WB_condition():
         if beq_after_flush_flag!=2 :
-            processor.WB(clk,pc-4)
+            processor.WB(clk, pc-4)
         else:    
-            processor.WB(clk,temp_pc)
+            processor.WB(clk, temp_pc)
 
     if  Mem_condition():
         processor.Mem(clk,pc-3)
@@ -670,6 +670,8 @@ while pc <= processor.eof + 5 :
     if IF_condition():
         processor.IF(clk,pc)
         
+
+
     pc += 1; clk += 1
     
     if beq_after_flush_flag != 5 : 
@@ -690,7 +692,7 @@ for i in range(0,len(processor.data_memory), 4):
      
 
       
-BHT = [
+# BHT = [
     #  0 (initially NT) : NEXT -> entire PC + 4
     #  and in after ALU you'll understand if your correct or not :-
             # if it was NT then a new entry will be made :-     0 : NEXT -> PC + 4
@@ -704,7 +706,7 @@ BHT = [
 
     #  1 (initially T)  : NEXT -> PC + 4 + imm*4 
     #  similar stuff 
-]
+# ]
 
 
 # {
