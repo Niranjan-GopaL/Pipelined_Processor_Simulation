@@ -84,29 +84,29 @@ class Processor :
         self.eof = 0
         
 
-        self.IF_ID_pipeline_reg   =  []
+        self.IF_ID_pipeline_reg    =  []
         
 
-        self.ID_EX_pipeline_reg = []
-        self.forwarded_rs       = ""
-        self.forwarded_rt       = ""
+        self.ID_EX_pipeline_reg    = []
+        self.forwarded_rs          = ""
+        self.forwarded_rt          = ""
 
 
         self.require_forwarding_rs = 0
         self.require_forwarding_rt = 0
         self.ALU_output            = ""
 
-        self.ALU_MeM_pipeline_reg = []
+        self.ALU_MeM_pipeline_reg  = []
 
-        self.Mem_out              = ""
+        self.Mem_out               = ""
         
-        self.Mem_WB_pipeline_reg = []
+        self.Mem_WB_pipeline_reg   = []
 
 
 
     # Complicated names for clarity
     def Hazard_Detection_and_Forwarding_Unit(self):
-        print(self.ALU_MeM_pipeline_reg)
+        print("\n\n",self.ALU_MeM_pipeline_reg)
 
         if self.ALU_MeM_pipeline_reg :
             now_op = self.ID_EX_pipeline_reg['op']
@@ -416,14 +416,14 @@ class Processor :
 
             print(begining_space + 'ALU executing...\n')
 
-            rs_value = self.register_file[rs]
-            rt_value = self.register_file[rt]
+            # rs_value = self.register_file[rs]
+            # rt_value = self.register_file[rt]
 
             # ALU operation
-            alu_output = rs_value - rt_value
+            alu_output = rt_value - rs_value
 
             if alu_output != 0 :
-                print(begining_space + f'Output computed as     :- {self.register_file[rt]} - {self.register_file[rs]} = {alu_output}\n')
+                print(begining_space + f'Output computed as     :- {rt_value} - {rs_value} = {alu_output}\n')
                 print(begining_space + 'No branching happens...\n\n')
 
                 # Loading the ALU_Mem pipeline registers
@@ -485,6 +485,14 @@ class Processor :
             # Writing to data memory
             self.data_memory[alu_output]  = self.register_file[rt]
 
+            print("---------- intermediate data mem ---------")                
+
+            print(f' rt values       --> {self.register_file[rt]}')
+            print(f'Index in data mem -> {alu_output}\n\n')
+            print(self.data_memory)
+
+            print("---------- intermediate data mem ---------")                
+            
             print(begining_space + f'Memory[ {alu_output}] = {self.register_file[rt]} ')
 
             # Loading the Mem_WB_pipeline_reg
@@ -555,8 +563,8 @@ class Processor :
 processor = Processor()
 
 
-# 1 for sorting 
 # 0 for factorial
+# 1 for sorting 
 
 choice = 1
 
@@ -617,18 +625,36 @@ processor.register_file = {
 clk = 1; pc = 1; beq_after_flush_flag = 5
 
 
+
+def WB_condition()  : 
+    return (beq_after_flush_flag == 2) or ( (pc-4 > 0) and (pc-4 <= processor.eof) and (beq_after_flush_flag-4 > 0) )
+
+def Mem_condition() : 
+    return (pc-3 > 0) and (pc-3 <= processor.eof) and (beq_after_flush_flag-3 > 0)
+
+def ALU_condition() : 
+    return (pc-2 > 0) and (pc-2 <= processor.eof) and (beq_after_flush_flag-2 > 0)
+
+def ID_condition()  : 
+    return (pc-1 > 0) and (pc-1 <= processor.eof) and (beq_after_flush_flag-1 > 0)
+    
+def IF_condition()  :
+    return pc < processor.eof
+
+
+
 while pc <= processor.eof + 5 :
  
-    if (beq_after_flush_flag == 2) or ( (pc-4 > 0) and (pc-4 <= processor.eof) and (beq_after_flush_flag-4 > 0) ):
+    if WB_condition():
         if beq_after_flush_flag!=2 :
             processor.WB(clk,pc-4)
         else:    
             processor.WB(clk,temp_pc)
 
-    if (pc-3 > 0) and (pc-3 <= processor.eof) and (beq_after_flush_flag-3 > 0) :
+    if  Mem_condition():
         processor.Mem(clk,pc-3)
 
-    if (pc-2 > 0) and (pc-2 <= processor.eof) and (beq_after_flush_flag-2 > 0):
+    if ALU_condition():
         return_alu = processor.ALU(clk,pc-2)
 
         if return_alu :
@@ -637,11 +663,11 @@ while pc <= processor.eof + 5 :
             pc = return_alu 
 
 
-    if (pc-1 > 0) and (pc-1 <= processor.eof) and (beq_after_flush_flag-1 > 0):
+    if ID_condition():
          processor.ID(clk,pc-1)
+         
 
-
-    if pc <= processor.eof:
+    if IF_condition():
         processor.IF(clk,pc)
         
     pc += 1; clk += 1

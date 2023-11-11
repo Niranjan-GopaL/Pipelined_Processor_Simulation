@@ -484,12 +484,12 @@ while pc <= processor.eof + 5 :
     
     
 
-# print("\n\n\n\n<<---------DATA MEMORY------------>>\n\n")
+print("\n\n\n\n<<---------DATA MEMORY------------>>\n\n")
 
-# print("-----------------------------")
-# for i in range(0,len(processor.data_memory), 4):
-#     for j in range(i,i+4):
-#         print(processor.data_memory[j], end= '   |   ')
-#     print()
-#     print("-----------------------------")
+print("-----------------------------")
+for i in range(0,len(processor.data_memory), 4):
+    for j in range(i,i+4):
+        print(processor.data_memory[j], end= '   |   ')
+    print()
+    print("-----------------------------")
      
