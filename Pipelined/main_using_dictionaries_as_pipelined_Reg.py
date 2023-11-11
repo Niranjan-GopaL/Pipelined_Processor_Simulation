@@ -13,6 +13,7 @@ import decodings
 -> since Mem works for only lw and sw NO CHANGE HAS BEEN MADE THERE
     -> LW SW support
 
+[DONE]
 -> there is no support for beq; bne in the ALU phase 
     ( think on how to  )
     -> how to change pc
@@ -28,7 +29,11 @@ import decodings
 -> printing r_type in print statements
     -> you only have add as '000000'
     -> you need to use func to make it work for all the r_types
-
+-> support for instructions that your assmebly code does not use
+    -> bgt
+    -> subi
+    -> move
+    -> li
 
 
 <---------- EASY FIX -------------> 
@@ -37,11 +42,12 @@ import decodings
     -> don't make pc a class member; make it a function parameter
     -> so you can choose what you are displaying WB(clk, pc-4) etc
 
-
--> get rid of many class members
+[DONE]
+-> get rid of  class members that were useful in non_pipelined but not in pipelined
         self.rt_decoded
         self.rs_decoded
 
+[DONE]
 -> USAGE OF  self.opcode_decoded in ID phase is horrendous
 
 '''
@@ -76,18 +82,10 @@ class Processor :
         self.register_file = {}
         self.data_memory = [0]*200
         self.eof = 0
+        
 
-
-        self.instruction_IF_ID_pipeline_reg   =  []
-
-
-        # self.opcode_decoded = ""
-        # self.rs_decoded     = ""        
-        # self.rt_decoded     = ""
-        # self.rd_decoded     = ""
-        # self.func_decoded   = ""
-        # self.imm_decoded    = ""
-
+        self.IF_ID_pipeline_reg   =  []
+        
 
         self.ID_EX_pipeline_reg = []
         self.forwarded_rs       = ""
@@ -103,8 +101,6 @@ class Processor :
         self.Mem_out              = ""
         
         self.Mem_WB_pipeline_reg = []
-        
-        
 
 
 
@@ -124,7 +120,12 @@ class Processor :
 
             '''
             
-            print("---------- forwarding unit ------------")
+            print("\n---------- forwarding unit ------------")
+
+            if self.ALU_MeM_pipeline_reg[0] == 'beq':
+                print("Previous instruction was beq ...")
+                print("No need of forwarding ...\n\n")
+                return
 
             if (now_op in decodings.r_type) or (now_op in ['beq', 'bne']):
 
@@ -160,29 +161,29 @@ class Processor :
                     self.require_forwarding_rs = 1
                     self.forwarded_rs          = actual_rs
 
-            print('---------------------------------------')
+            print('---------------------------------------\n')
 
 
 
     def IF(self, clk, pc):
         line  = self.instruction_memory[pc - 1]
         
-        self.instruction_IF_ID_pipeline_reg = line.strip()
-        print(f'clock cycle {clk:<5}: Instruction No {pc :<5}:-  (IF)   PC -> {self.instruction_IF_ID_pipeline_reg}')
+        self.IF_ID_pipeline_reg = line.strip()
+        print(f'clock cycle {clk:<5}: Instruction No {pc :<5}:-  (IF)   PC -> {self.IF_ID_pipeline_reg}')
 
 
     def ID(self, clk, pc):
         print(f'clock cycle {clk:<5}: Instruction No {pc :<5}:-  (ID)   instruction decoded as :-\n')
 
-        opcode = self.instruction_IF_ID_pipeline_reg[:6]
+        opcode = self.IF_ID_pipeline_reg[:6]
         opcode_decoded = decodings.opcode_decodings[opcode]
 
 
         if (opcode_decoded in decodings.i_type) or (opcode_decoded in decodings.load_store_encoding) or (opcode_decoded in ['beq', 'ble']) :
 
-            rs  = self.instruction_IF_ID_pipeline_reg[6:11]
-            rt  = self.instruction_IF_ID_pipeline_reg[11:16]
-            imm = self.instruction_IF_ID_pipeline_reg[16:]
+            rs  = self.IF_ID_pipeline_reg[6:11]
+            rt  = self.IF_ID_pipeline_reg[11:16]
+            imm = self.IF_ID_pipeline_reg[16:]
 
 
             rs_decoded  = decodings.register_decoding[rs]        
@@ -199,7 +200,6 @@ class Processor :
                 print(begining_space + f'{opcode_decoded}    {rt_decoded}, {imm_decoded}({rs_decoded}), \n')
             else:
                 print(begining_space + f'{opcode_decoded}    {rt_decoded}, {rs_decoded}, {imm_decoded}\n')
-
 
             
             # Loading the values to the ID_EXE pipeline registers
@@ -218,11 +218,11 @@ class Processor :
 
         elif opcode_decoded in decodings.r_type:
 
-            rs    = self.instruction_IF_ID_pipeline_reg[6:11]
-            rt    = self.instruction_IF_ID_pipeline_reg[11:16]
-            rd    = self.instruction_IF_ID_pipeline_reg[16:21]
-            shamt = self.instruction_IF_ID_pipeline_reg[21:26]
-            func  = self.instruction_IF_ID_pipeline_reg[26:]
+            rs    = self.IF_ID_pipeline_reg[6:11]
+            rt    = self.IF_ID_pipeline_reg[11:16]
+            rd    = self.IF_ID_pipeline_reg[16:21]
+            shamt = self.IF_ID_pipeline_reg[21:26]
+            func  = self.IF_ID_pipeline_reg[26:]
 
             rs_decoded    = decodings.register_decoding[rs]        
             rt_decoded    = decodings.register_decoding[rt]
@@ -315,9 +315,9 @@ class Processor :
             opertaion = { 'sub': "subrtation", 'add': "addition", 'mul': "multiplication", 'slt': "Set if less than"}
 
             # Taking inputs from the pipeline registers
-            rs    = self.ID_EX_pipeline_reg['rs']
-            rt    = self.ID_EX_pipeline_reg['rt']
-            rd    = self.ID_EX_pipeline_reg['rd']
+            rs    = self.ID_EX_pipeline_reg['rs'  ]
+            rt    = self.ID_EX_pipeline_reg['rt'  ]
+            rd    = self.ID_EX_pipeline_reg['rd'  ]
             func  = self.ID_EX_pipeline_reg['func']
 
 
@@ -385,33 +385,70 @@ class Processor :
 
 
         elif op == "beq":
+            
+            rs = self.ID_EX_pipeline_reg['rs']
+            rt = self.ID_EX_pipeline_reg['rt']
+            imm = self.ID_EX_pipeline_reg['imm']
+            
             print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:-  (Ex)  ALU performing subtraction\n')
+            
+            if not self.require_forwarding_rs:
+                rs_value = self.register_file[rs]
+                print(begining_space + f'register {rs} contains  :- {rs_value}')
+            else:
+                print(begining_space + f'Hazard detected ...')
+                print(begining_space + f'Using the forwarded value of RS register {rs} ...')
+                print(begining_space + f'Current value of   {rs} --> {self.register_file[rs]} ')
+                print(begining_space + f'Forwarded value of {rs} --> {self.forwarded_rs}\n')
+                rs_value = self.forwarded_rs
 
-            print(begining_space + f'register {self.rs_decoded} contains  :- {self.register_file[self.rs_decoded]}')
-            print(begining_space + f'register {self.rt_decoded} contains  :- {self.register_file[self.rt_decoded]}')
+
+            if not self.require_forwarding_rt:
+                rt_value = self.register_file[rt]
+                print(begining_space + f'register {rt} contains  :- {rt_value}')
+            else:
+                print(begining_space + f'Hazard detected ...')
+                print(begining_space + f'Using the forwarded value of RT register {rt} ...')
+                print(begining_space + f'Current value of   {rt} --> {self.register_file[rt]} ')
+                print(begining_space + f'Forwarded value of {rt} --> {self.forwarded_rt}\n')
+                rt_value = self.forwarded_rt
+
 
             print(begining_space + 'ALU executing...\n')
 
-            rs_value = self.register_file[self.rs_decoded]
-            rt_value = self.register_file[self.rt_decoded]
+            rs_value = self.register_file[rs]
+            rt_value = self.register_file[rt]
 
             # ALU operation
-            self.ALU_output = rs_value - rt_value
+            alu_output = rs_value - rt_value
 
-            if self.ALU_output != 0 :
-                print(begining_space + f'Output computed as     :- {self.register_file[self.rt_decoded]} - {self.register_file[self.rs_decoded]} = {self.ALU_output}\n')
+            if alu_output != 0 :
+                print(begining_space + f'Output computed as     :- {self.register_file[rt]} - {self.register_file[rs]} = {alu_output}\n')
                 print(begining_space + 'No branching happens...\n\n')
-                pc += 1
+
+                # Loading the ALU_Mem pipeline registers
+                self.ALU_MeM_pipeline_reg = [op]
                 
             else:
-                print(begining_space + f'Output computed as     :- {self.register_file[self.rt_decoded]} - {self.register_file[self.rs_decoded]} = {self.ALU_output}\n')
-                print(begining_space + 'Branching happens...\n')
-                print(begining_space + f'immediate value        :- {self.imm_decoded}')
-                print(begining_space + f'imm value lshifted by 2:- {self.imm_decoded*4}\n\n')
-                print(begining_space + f'New PC = PC + 4 + imm*4 = PC + 4 + {self.imm_decoded*4}')
+                print(begining_space + f'Output computed as     :- {self.register_file[rt]} - {self.register_file[rs]} = {alu_output}\n')
+                print(begining_space +  'Branching happens...\n')
+                print(begining_space + f'immediate value        :- {imm}')
+                print(begining_space + f'imm value lshifted by 2:- {imm*4}\n\n')
+                print(begining_space + f'New PC = PC + 4 + imm*4 = PC + 4 + {imm*4}')
 
-                self.instruction = self.instruction_memory[pc - 1 + 1 + self.imm_decoded ]
-                pc = pc + 1 + self.imm_decoded
+
+                self.ID_EX_pipeline_reg   = []
+                print(begining_space + f'Flushing ID/EX pipline ...')
+
+                self.ALU_MeM_pipeline_reg = []
+                print(begining_space + f'Flushing ALU/Mem pipline ...')
+
+                new_pc = pc + 1 + imm
+                return new_pc
+
+
+
+
 
         # reseting the control signal
         self.require_forwarding_rs = 0    
@@ -423,13 +460,15 @@ class Processor :
     def Mem(self, clk, pc):
 
         #  Getting input values from the ALU/Mem pipeline registers
-        op         = self.ALU_MeM_pipeline_reg[0]
-        rt_or_rd   = self.ALU_MeM_pipeline_reg[1]
-        alu_output = self.ALU_MeM_pipeline_reg[2]
+        op= self.ALU_MeM_pipeline_reg[0]
+
+        if len(self.ALU_MeM_pipeline_reg) > 1:
+            rt_or_rd   = self.ALU_MeM_pipeline_reg[1]
+            alu_output = self.ALU_MeM_pipeline_reg[2]
 
 
         # Three forms :-
-        # self.Mem_WB_pipeline_reg = [op]                   <--- sw          
+        # self.Mem_WB_pipeline_reg = [op]                         <--- sw          
         # self.Mem_WB_pipeline_reg = [op, rt_or_rd, mem_out]      <--- lw            
         # self.Mem_WB_pipeline_reg = [op,rt_or_rd,alu_output]     <--- anything else             
 
@@ -438,7 +477,7 @@ class Processor :
             
             rt = rt_or_rd
 
-            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:- (Mem) Data Memory needs to written onto ...  ')
+            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:-  (Mem) Data Memory needs to written onto ...  ')
 
             print(begining_space + f'register {rt} = {self.register_file[rt_or_rd]}\n')
             print(begining_space + f'Storing to Memory[ rs + imm ] ...')
@@ -458,7 +497,7 @@ class Processor :
 
             rt = rt_or_rd
 
-            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:- (Mem) Memory access required ')
+            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:-  (Mem) Memory access required ')
 
             mem_out = self.data_memory[alu_output]
 
@@ -468,11 +507,15 @@ class Processor :
             # Loading the Mem_WB_pipeline_reg
             self.Mem_WB_pipeline_reg = [op, rt, mem_out]
 
+
+        elif op == 'beq':
+            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:-  (Mem) No memory access required ')
+            self.Mem_WB_pipeline_reg = [op]
+
+
         else:
-
             rd = rt_or_rd
-
-            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:- (Mem) No memory access required ')
+            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:-  (Mem) No memory access required ')
 
             # Loading the Mem_WB_pipeline_reg
             self.Mem_WB_pipeline_reg = [op,rd,alu_output]
@@ -483,8 +526,10 @@ class Processor :
 
         op = self.Mem_WB_pipeline_reg[0]
     
-        if op != 'sw' :
-            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:- (WriteBack) Writing ALU output back to RegFile  \n')
+        if op in ['sw','beq'] :
+            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:-  (WriteBack) No Writing back to register file required ')
+        else:
+            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:-  (WriteBack) Writing ALU output back to RegFile  \n')
 
             rt = self.Mem_WB_pipeline_reg[1]
             
@@ -498,8 +543,6 @@ class Processor :
                 alu_out = self.Mem_WB_pipeline_reg[2]
                 self.register_file[rt] = alu_out
                 print(begining_space + f'registers {rt} contains :-  {alu_out}\n')
-        else:
-            print(f'clock cycle {clk:<5}: Instruction No {pc:<5}:- (Mem) No Writing back to register file required ')
 
     
 
@@ -515,7 +558,7 @@ processor = Processor()
 # 1 for sorting 
 # 0 for factorial
 
-choice = 0
+choice = 1
 
 if choice :
     t0 = int(input("Enter number of integers:"))
@@ -536,7 +579,7 @@ else:
     t0 = int(input("Enter number to find factorial:"))
     t2 = int(input("Enter base address of output:"))
 
-    file_path = "bin_test.txt" 
+    file_path = "bin_factorial_CLEAN.txt" 
     with open(file_path, "r") as file:
         processor.instruction_memory = file.readlines()
 
@@ -571,41 +614,94 @@ processor.register_file = {
 
 
 
-clk = 1; pc = 1
+clk = 1; pc = 1; beq_after_flush_flag = 5
 
 
 while pc <= processor.eof + 5 :
  
-    if (pc-4 > 0) and (pc-4 <= processor.eof):
-        processor.WB(clk,pc-4)
+    if (beq_after_flush_flag == 2) or ( (pc-4 > 0) and (pc-4 <= processor.eof) and (beq_after_flush_flag-4 > 0) ):
+        if beq_after_flush_flag!=2 :
+            processor.WB(clk,pc-4)
+        else:    
+            processor.WB(clk,temp_pc)
 
-    if (pc-3 > 0) and (pc-3 <= processor.eof):
+    if (pc-3 > 0) and (pc-3 <= processor.eof) and (beq_after_flush_flag-3 > 0) :
         processor.Mem(clk,pc-3)
 
-    if (pc-2 > 0) and (pc-2 <= processor.eof):
-        processor.ALU(clk,pc-2)
-        if processor.opcode_decoded == "beq" : 
-            continue
+    if (pc-2 > 0) and (pc-2 <= processor.eof) and (beq_after_flush_flag-2 > 0):
+        return_alu = processor.ALU(clk,pc-2)
 
-    if (pc-1 > 0) and (pc-1 <= processor.eof):
-        processor.ID(clk,pc-1)
+        if return_alu :
+            beq_after_flush_flag = 1
+            temp_pc = pc
+            pc = return_alu 
+
+
+    if (pc-1 > 0) and (pc-1 <= processor.eof) and (beq_after_flush_flag-1 > 0):
+         processor.ID(clk,pc-1)
 
 
     if pc <= processor.eof:
         processor.IF(clk,pc)
         
-    pc += 1   
-
-    clk += 1
+    pc += 1; clk += 1
     
+    if beq_after_flush_flag != 5 : 
+        beq_after_flush_flag += 1
     
 
-# print("\n\n\n\n<<---------DATA MEMORY------------>>\n\n")
 
-# print("-----------------------------")
-# for i in range(0,len(processor.data_memory), 4):
-#     for j in range(i,i+4):
-#         print(processor.data_memory[j], end= '   |   ')
-#     print()
-#     print("-----------------------------")
+
+
+print("\n\n\n\n<<---------DATA MEMORY------------>>\n\n")
+
+print("-----------------------------")
+for i in range(0,len(processor.data_memory), 4):
+    for j in range(i,i+4):
+        print(processor.data_memory[j], end= '   |   ')
+    print()
+    print("-----------------------------")
      
+
+      
+BHT = [
+    #  0 (initially NT) : NEXT -> entire PC + 4
+    #  and in after ALU you'll understand if your correct or not :-
+            # if it was NT then a new entry will be made :-     0 : NEXT -> PC + 4
+
+            # if it was T then a new entry will be made :-      0 : NEXT -> PC + 4 + imm*4
+
+            # so in next iteration we'll look at BHT[-1][0] if it's 0 or 1
+            # and get IF( BHT[-1][1] )   
+
+
+
+    #  1 (initially T)  : NEXT -> PC + 4 + imm*4 
+    #  similar stuff 
+]
+
+
+# {
+#     "beq_line" : [ 0 , 'PC'+1 ],
+#     "beq_line" : [ 1 , 'PC'+4 ]
+# }
+
+
+
+# <---------------------- BASIC DESIGN ------------------->
+
+# BHT = {
+    
+#     # when you decode a beq , add that PC adress as a key.
+#     # In ALU add the NT and T as the value corresponding to that beq
+    
+#     # Next time, in ID if you decode and see that it is indeed a beq, and that has an entry in BHT,
+#     # NEXT PC needs to be the value correpsonding to that pc
+
+# }
+
+
+# if processor.pc_from_branch_predictor :
+#     # now all the following instruction will be after this pc
+#     pc = processor.BHT['branch_pc']
+#     processor.IF(clk, pc)
