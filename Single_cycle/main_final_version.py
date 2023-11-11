@@ -3,6 +3,8 @@ import decodings
 
 begining_space = "                        "; 
 
+
+
 def integer_of_16_bit_imm(binary_str):
     is_negative = binary_str[0] == '1'
 
@@ -30,7 +32,7 @@ class Processor :
         self.data_memory = [0]*200
         self.eof = 0
 
-        self.instruction   = ""
+        self.instruction    = ""
 
         self.opcode_decoded = ""
         self.rs_decoded     = ""        
@@ -276,14 +278,16 @@ else:
 
 processor.eof = len(processor.instruction_memory)
 print(processor.eof)
-      
+
+
 
 processor.register_file = {
-        "$0":0,
+        "$0" : 0,
 
         "$t0" : t0,
         "$t1" : t1 if choice else 0,
         "$t2" : t2,
+
         "$t3" : 0,
         "$t4" : 0,
         "$t5" : 0,

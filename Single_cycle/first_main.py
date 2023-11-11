@@ -249,11 +249,11 @@ while instruction_number - 1 != eof :
 
 
     elif opcode_decoded in decodings.r_type:
-        rs = line[6:11]
-        rt = line[11:16]
-        rd = line[16:21]
+        rs    = line[6:11]
+        rt    = line[11:16]
+        rd    = line[16:21]
         shamt = line[21:26]
-        func = line[26:]
+        func  = line[26:]
 
         rs_decoded    = decodings.register_decoding[rs]        
         rt_decoded    = decodings.register_decoding[rt]
